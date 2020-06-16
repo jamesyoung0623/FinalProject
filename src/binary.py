@@ -20,7 +20,8 @@ val_label_B = []
 val_label_C = []
 val_label = []
 
-train_label_file = open('../data/train.csv', 'r')
+train_label_file = sorted(open('data/train.csv', 'r'))
+
 for row in train_label_file:
     if row[10] == 'A':
         train_label_A.append(1)
@@ -35,7 +36,7 @@ for row in train_label_file:
         train_label_B.append(0)
         train_label_C.append(1)
 
-val_label_file = open('../data/dev.csv', 'r')
+val_label_file = open('data/dev.csv', 'r')
 for row in val_label_file:
     if row[10] == 'A':
         val_label_A.append(1)
@@ -96,18 +97,6 @@ for epoch in range(EPOCHS):
         print('Epoch: [{0}][{1}/{2}] loss: {3}'.format(epoch+1, idx+1, len(train_loader_A), loss.item()))
     
     model_A.eval()
-    #with torch.no_grad():
-    #    for idx, (image, label) in enumerate(train_loader_A):
-    #        for i in range(BATCH):
-    #            image = image.cuda()
-    #            output = model_A(image)[i][0]
-    #            pred = 1 if output > 0.5 else 0
-    #            if pred == label[i]:
-    #                train_acc += 1
-    #            image = image.cpu()
-        
-    #print('Epoch: [{0}] train_acc_A: {1}'.format(epoch + 1, train_acc/len(train_label_A)))
-    
     with torch.no_grad():
         for idx, (image, label) in enumerate(val_loader_A):
             for i in range(BATCH):
@@ -121,7 +110,7 @@ for epoch in range(EPOCHS):
     print('Epoch: [{0}] val_acc_A: {1}'.format(epoch + 1, val_acc/len(val_label_A)))
     if val_acc/len(val_label_A) > best_acc:
         best_acc = val_acc/len(val_label_A)
-        torch.save(model_A.state_dict(), os.path.join('../model/modelA.tar'))
+        torch.save(model_A.state_dict(), os.path.join('model/modelA.tar'))
     scheduler.step()
 model_A = model_A.cpu()
     
@@ -150,17 +139,6 @@ for epoch in range(EPOCHS):
         print('Epoch: [{0}][{1}/{2}] loss: {3}'.format(epoch+1, idx+1, len(train_loader_B), loss.item()))
     
     model_B.eval()
-    #with torch.no_grad():
-    #    for idx, (image, label) in enumerate(train_loader_B):
-    #        for i in range(BATCH):
-    #            image = image.cuda()
-    #            output = model_B(image)[i][0]
-    #            pred = 1 if output > 0.5 else 0
-    #            if pred == label[i]:
-    #                train_acc += 1
-    #            image = image.cpu()
-    #print('Epoch: [{0}] train_acc_B: {1}'.format(epoch + 1, train_acc/len(train_label_B)))
-    
     with torch.no_grad():
         for idx, (image, label) in enumerate(val_loader_B):
             for i in range(BATCH):
@@ -174,7 +152,7 @@ for epoch in range(EPOCHS):
     print('Epoch: [{0}] val_acc_B: {1}'.format(epoch + 1, val_acc/len(val_label_B)))
     if val_acc/len(val_label_B) > best_acc:
         best_acc = val_acc/len(val_label_B)
-        torch.save(model_B.state_dict(), os.path.join('../model/modelB.tar'))
+        torch.save(model_B.state_dict(), os.path.join('model/modelB.tar'))
     scheduler.step()
 model_B = model_B.cpu()
 
@@ -203,18 +181,6 @@ for epoch in range(EPOCHS):
         print('Epoch: [{0}][{1}/{2}] loss: {3}'.format(epoch+1, idx+1, len(train_loader_C), loss.item()))
     
     model_C.eval()
-    #with torch.no_grad():
-    #    for idx, (image, label) in enumerate(train_loader_C):
-    #        for i in range(BATCH):
-    #            image = image.cuda()
-    #            output = model_C(image)[i][0]
-    #            pred = 1 if output > 0.5 else 0
-    #            if pred == label[i]:
-    #                train_acc += 1
-    #            image = image.cpu()
-        
-    #print('Epoch: [{0}] train_acc_C: {1}'.format(epoch + 1, train_acc/len(train_label_C)))
-    
     with torch.no_grad():
         for idx, (image, label) in enumerate(val_loader_C):
             for i in range(BATCH):
@@ -224,26 +190,10 @@ for epoch in range(EPOCHS):
                 if pred == label[i]:
                     val_acc += 1
                 image = image.cpu()
-        
+    
     print('Epoch: [{0}] val_acc_C: {1}'.format(epoch + 1, val_acc/len(val_label_C)))
     if val_acc/len(val_label_C) > best_acc:
         best_acc = val_acc/len(val_label_C)
-        torch.save(model_C.state_dict(), os.path.join('../model/modelC.tar'))
+        torch.save(model_C.state_dict(), os.path.join('model/modelC.tar'))
     scheduler.step()
 model_C = model_C.cpu()
-
-acc = 0.0
-with torch.no_grad():
-    for idx, (image, label) in enumerate(val_loader):
-        pred_A = model_A(image)[0]
-        pred_B = model_B(image)[0]
-        pred_C = model_C(image)[0]
-        pred = max(pred_A, pred_B, pred_C)
-        if pred == pred_A and label[0][0] == 1.0:
-            acc += 1
-        elif pred == pred_B and label[0][1] == 1.0:
-            acc += 1
-        elif pred == pred_C and label[0][2] == 1.0:
-            acc += 1
-
-print('ACC: {}'.format(acc/len(val_label)))

@@ -15,7 +15,7 @@ EPOCHS = 50
 train_label = []
 val_label = []
 
-train_label_file = open('../data/train.csv', 'r')
+train_label_file = open('data/train.csv', 'r')
 for row in train_label_file:
     if row[10] == 'A':
         train_label.append([1, 0, 0])
@@ -24,7 +24,7 @@ for row in train_label_file:
     elif row[10] == 'C':
         train_label.append([0, 0, 1])
 
-val_label_file = open('../data/dev.csv', 'r')
+val_label_file = open('data/dev.csv', 'r')
 for row in val_label_file:
     if row[10] == 'A':
         val_label.append([1, 0, 0])
@@ -57,28 +57,16 @@ for epoch in range(EPOCHS):
     model.train()
     for idx, (image, label) in enumerate(train_loader):
         optimizer.zero_grad()
-        output = model(image.to(device))
-        loss = loss_function(output, label.to(device))
+        output = model(image.cuda())
+        loss = loss_function(output, label.cuda())
         loss.backward()
         optimizer.step()
-        #print('Epoch: [{0}][{1}/{2}] loss: {3}'.format(epoch+1, idx+1, len(train_loader), loss.item()))
+        print('Epoch: [{0}][{1}/{2}] loss: {3}'.format(epoch+1, idx+1, len(train_loader), loss.item()))
     
     model.eval()
     with torch.no_grad():
-        for idx, (image, label) in enumerate(train_loader):
-            output = model(image.to(device))
-            for i in range(BATCH):
-                pred = torch.max(output[i])
-                for j in range(3):
-                    if output[i][j] == pred and label[i][j] == 1.0:
-                        train_acc += 1
-                        break
-        
-    print('Epoch: [{0}] train_acc: {1}'.format(epoch + 1, train_acc/len(train_label)))
-    
-    with torch.no_grad():
         for idx, (image, label) in enumerate(val_loader):
-            output = model(image.to(device))
+            output = model(image.cuda())
             for i in range(BATCH):
                 pred = torch.max(output[i])
                 for j in range(3):
@@ -89,5 +77,5 @@ for epoch in range(EPOCHS):
     print('Epoch: [{0}] val_acc: {1}'.format(epoch + 1, val_acc/len(val_label)))
     if val_acc/len(val_label) > best_acc:
         best_acc = val_acc/len(val_label)
-        torch.save(model.state_dict(), os.path.join('../model/model.tar'))
+        torch.save(model.state_dict(), os.path.join('model/model.tar'))
     scheduler.step()
